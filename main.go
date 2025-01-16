@@ -14,6 +14,7 @@ import (
 	"github.com/bestruirui/mihomo-check/save"
 	"github.com/bestruirui/mihomo-check/utils"
 	"github.com/fsnotify/fsnotify"
+	_ "github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/log"
 	"gopkg.in/yaml.v3"
 )
