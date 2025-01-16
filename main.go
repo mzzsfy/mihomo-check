@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/metacubex/mihomo/dns"
 	"os"
 	"path/filepath"
 	"time"
@@ -57,6 +58,14 @@ func (app *App) Initialize() error {
 	}
 
 	app.interval = config.GlobalConfig.CheckInterval
+	if len(config.GlobalConfig.MateDns) > 0 {
+		server, err1 := dns.ParseNameServer(config.GlobalConfig.MateDns)
+		if err1 != nil {
+			config.ProxyResolver = dns.NewResolver(dns.Config{
+				Main: server,
+			})
+		}
+	}
 	return nil
 }
 
@@ -140,6 +149,14 @@ func (app *App) initConfigWatcher() error {
 						}
 						// 更新检查间隔
 						app.interval = config.GlobalConfig.CheckInterval
+						if len(config.GlobalConfig.MateDns) > 0 {
+							server, err1 := dns.ParseNameServer(config.GlobalConfig.MateDns)
+							if err1 != nil {
+								config.ProxyResolver = dns.NewResolver(dns.Config{
+									Main: server,
+								})
+							}
+						}
 					}()
 				}
 			case err, ok := <-watcher.Errors:

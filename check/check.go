@@ -3,6 +3,7 @@ package check
 import (
 	"context"
 	"fmt"
+	"github.com/metacubex/mihomo/component/dialer"
 	"io"
 	"net"
 	"net/http"
@@ -309,7 +310,7 @@ func CreateClient(mapping map[string]any) *http.Client {
 				return proxy.DialContext(ctx, &constant.Metadata{
 					Host:    host,
 					DstPort: u16Port,
-				})
+				}, dialer.WithResolver(config.ProxyResolver))
 			},
 			// 设置连接超时
 			IdleConnTimeout: time.Duration(config.GlobalConfig.Timeout) * time.Millisecond,

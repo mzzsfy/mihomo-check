@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/metacubex/mihomo/component/resolver"
+)
+
 type IPInfo struct {
 	APIURL  []string `yaml:"api-url"`
 	IPDBURL string   `yaml:"ipdb-url"`
@@ -24,6 +28,8 @@ type Config struct {
 	IPInfo          IPInfo   `yaml:"ip-info"`
 	MihomoApiUrl    string   `yaml:"mihomo-api-url"`
 	MihomoApiSecret string   `yaml:"mihomo-api-secret"`
+	MateDns         []string `yaml:"mate-dns"`
 }
 
 var GlobalConfig Config
+var ProxyResolver resolver.Resolver
