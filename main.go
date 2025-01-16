@@ -59,11 +59,14 @@ func (app *App) Initialize() error {
 
 	app.interval = config.GlobalConfig.CheckInterval
 	if len(config.GlobalConfig.MateDns) > 0 {
+		log.Infoln("使用自定义DNS服务器: %v", config.GlobalConfig.MateDns)
 		server, err1 := dns.ParseNameServer(config.GlobalConfig.MateDns)
-		if err1 != nil {
+		if err1 == nil {
 			config.ProxyResolver = dns.NewResolver(dns.Config{
 				Main: server,
 			})
+		} else {
+			log.Errorln("解析DNS服务器失败: %v", err1)
 		}
 	}
 	return nil
@@ -151,10 +154,12 @@ func (app *App) initConfigWatcher() error {
 						app.interval = config.GlobalConfig.CheckInterval
 						if len(config.GlobalConfig.MateDns) > 0 {
 							server, err1 := dns.ParseNameServer(config.GlobalConfig.MateDns)
-							if err1 != nil {
+							if err1 == nil {
 								config.ProxyResolver = dns.NewResolver(dns.Config{
 									Main: server,
 								})
+							} else {
+								log.Errorln("解析DNS服务器失败: %v", err1)
 							}
 						}
 					}()
