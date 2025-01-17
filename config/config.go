@@ -29,6 +29,7 @@ type Config struct {
 	MihomoApiUrl    string   `yaml:"mihomo-api-url"`
 	MihomoApiSecret string   `yaml:"mihomo-api-secret"`
 	MateDns         []string `yaml:"mate-dns"`
+	Warmup          bool     `yaml:"warmup"`
 }
 
 var GlobalConfig Config

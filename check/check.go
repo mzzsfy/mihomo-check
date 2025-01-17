@@ -128,6 +128,9 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	if httpClient == nil {
 		return nil
 	}
+	if config.GlobalConfig.Warmup {
+		platfrom.CheckCloudflare(httpClient)
+	}
 
 	cloudflare, err := platfrom.CheckCloudflare(httpClient)
 	if err != nil || !cloudflare {
