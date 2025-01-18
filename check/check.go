@@ -141,6 +141,14 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	if err != nil || !google {
 		return nil
 	}
+	for _, url := range config.GlobalConfig.ExtraCheckUrls {
+		if url == "" {
+			continue
+		}
+		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
+			return nil
+		}
+	}
 
 	// 执行其他平台检测
 	openai, _ := platfrom.CheckOpenai(httpClient)

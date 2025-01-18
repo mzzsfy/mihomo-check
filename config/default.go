@@ -19,6 +19,18 @@ download-size: 20
 # 上传测试大小(MB)
 upload-size: 20
 
+# 是否预热,有效提高检测准确性
+warmup: true
+
+# 解析代理域名使用的dns
+mate-dns:
+  - https://dns.cloudflare.com/dns-query
+  - tls://dns.google
+
+# 额外检测可用性url
+extra-check-urls:
+  - https://www.gstatic.com/generate_204
+
 # mihomo api url
 mihomo-api-url: https://api.mihomo.me/v3/
 
