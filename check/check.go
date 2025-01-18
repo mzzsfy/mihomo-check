@@ -257,7 +257,11 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 			time.Sleep(time.Second * time.Duration(retries+1))
 			if retries < config.GlobalConfig.SubUrlsReTry {
 				i--
-				log.Errorln("获取订阅链接失败: %v,重试次数: %d", err, retries)
+				code := 0
+				if resp != nil {
+					code = resp.StatusCode
+				}
+				log.Errorln("获取订阅链接失败: %v,httpCode: %v,重试次数: %d", err, code, retries)
 			} else {
 				retries = 0
 				log.Errorln("获取订阅链接失败: %v", err)
@@ -282,8 +286,8 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 		if err := yaml.Unmarshal(data, &conf); err != nil {
 			retries++
 			if retries < config.GlobalConfig.SubUrlsReTry {
-				log.Errorln("解析订阅链接失败: %v,重试次数: %d", err, retries)
 				i--
+				log.Errorln("解析订阅链接失败: %v,重试次数: %d", err, retries)
 			} else {
 				retries = 0
 				log.Errorln("解析订阅链接失败: %v", err)
