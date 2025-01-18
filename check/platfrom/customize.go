@@ -1,6 +1,7 @@
 package platfrom
 
 import (
+	"io"
 	"net/http"
 )
 
@@ -23,7 +24,10 @@ func CheckCustomize(url string, httpClient *http.Client) (bool, error) {
 		return false, err
 	}
 	defer resp.Body.Close()
-
+	_, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
 	if resp.StatusCode >= 100 && resp.StatusCode < 400 {
 		return true, nil
 	}
