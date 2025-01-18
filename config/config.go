@@ -10,6 +10,7 @@ type IPInfo struct {
 }
 
 type Config struct {
+	DebugMode       bool     `yaml:"debug-mode"`
 	PrintProgress   bool     `yaml:"print-progress"`
 	Concurrent      int      `yaml:"concurrent"`
 	CheckInterval   int      `yaml:"check-interval"`

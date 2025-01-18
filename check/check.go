@@ -126,6 +126,9 @@ func (pc *ProxyChecker) worker(wg *sync.WaitGroup) {
 func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	httpClient := CreateClient(proxy)
 	if httpClient == nil {
+		if config.GlobalConfig.DebugMode {
+			log.Infoln("%s 创建客户端失败", proxy["name"])
+		}
 		return nil
 	}
 	if config.GlobalConfig.Warmup {
@@ -134,11 +137,17 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 
 	cloudflare, err := platfrom.CheckCloudflare(httpClient)
 	if err != nil || !cloudflare {
+		if config.GlobalConfig.DebugMode {
+			log.Infoln("%s 检查代理结果:无法访问Cloudflare", proxy["name"])
+		}
 		return nil
 	}
 
 	google, err := platfrom.CheckGoogle(httpClient)
 	if err != nil || !google {
+		if config.GlobalConfig.DebugMode {
+			log.Infoln("%s 检查代理结果:无法访问Google", proxy["name"])
+		}
 		return nil
 	}
 	for _, url := range config.GlobalConfig.ExtraCheckUrls {
@@ -146,6 +155,9 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			continue
 		}
 		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
+			if config.GlobalConfig.DebugMode {
+				log.Infoln("%s 检查代理结果:无法访问自定义url", proxy["name"], url)
+			}
 			return nil
 		}
 	}
@@ -159,8 +171,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	// 更新代理名称
 	pc.updateProxyName(proxy, httpClient)
 	pc.incrementAvailable()
-
-	return &Result{
+	result := Result{
 		Proxy:      proxy,
 		Cloudflare: cloudflare,
 		Google:     google,
@@ -169,6 +180,10 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 		Netflix:    netflix,
 		Disney:     disney,
 	}
+	if config.GlobalConfig.DebugMode {
+		log.Infoln("%s 检查代理结果: %v", proxy["name"], result)
+	}
+	return &result
 }
 
 // updateProxyName 更新代理名称
