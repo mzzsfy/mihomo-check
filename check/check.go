@@ -256,10 +256,10 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 			retries++
 			time.Sleep(time.Second * time.Duration(retries+1))
 			if retries < config.GlobalConfig.SubUrlsReTry {
+				log.Errorln("获取订阅链接失败: %v,重试次数: %d", err, retries)
+			} else {
 				retries = 0
 				log.Errorln("获取订阅链接失败: %v", err)
-			} else {
-				log.Errorln("获取订阅链接失败: %v,重试次数: %d", err, retries)
 			}
 			continue
 		}
