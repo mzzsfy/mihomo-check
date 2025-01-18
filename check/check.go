@@ -236,26 +236,30 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 
 	proxies := make([]map[string]any, 0)
 
-	for _, subUrl := range config.GlobalConfig.SubUrls {
+	urls := config.GlobalConfig.SubUrls[:]
+	retries := 0
+	for i := 0; i < len(urls); i++ {
+		subUrl := urls[i]
 		// 添加重试逻辑
 		var resp *http.Response
 		var err error
-		for retries := 0; retries < config.GlobalConfig.SubUrlsReTry; retries++ {
-			resp, err = http.Get(subUrl)
-			if err == nil && resp.StatusCode == 200 {
-				break
-			}
-			log.Errorln("获取订阅链接失败: %v,重试次数: %d", err, retries+1)
+		resp, err = http.Get(subUrl)
+		if err != nil || resp.StatusCode != 200 {
+			retries++
 			time.Sleep(time.Second * time.Duration(retries+1))
+			if retries < config.GlobalConfig.SubUrlsReTry {
+				retries = 0
+				log.Errorln("获取订阅链接失败: %w", err)
+			} else {
+				log.Errorln("获取订阅链接失败: %v,重试次数: %d", err, retries)
+			}
+			continue
 		}
-		if err != nil {
-			return nil, fmt.Errorf("获取订阅链接失败: %w", err)
-		}
-		defer resp.Body.Close()
-
 		data, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
-			return nil, fmt.Errorf("读取配置文件失败: %w", err)
+			log.Errorln("读取配置文件失败: %w", err)
+			continue
 		}
 
 		var config map[string]any
@@ -264,7 +268,7 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 			log.Errorln("订阅链接: %s", subUrl)
 			continue
 		}
-
+		retries = 0
 		// 添加空值检查
 		proxyInterface, ok := config["proxies"]
 		if !ok || proxyInterface == nil {
