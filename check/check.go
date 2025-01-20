@@ -25,13 +25,11 @@ import (
 
 // Result 存储节点检测结果
 type Result struct {
-	Proxy      map[string]any
-	Openai     bool
-	Youtube    bool
-	Netflix    bool
-	Google     bool
-	Cloudflare bool
-	Disney     bool
+	Proxy   map[string]any
+	Openai  bool
+	Youtube bool
+	Netflix bool
+	Disney  bool
 }
 
 // ProxyChecker 处理代理检测的主要结构体
@@ -134,32 +132,41 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	if config.GlobalConfig.Warmup {
 		platfrom.CheckCloudflare(httpClient)
 	}
+	if len(config.GlobalConfig.CheckUrls) == 0 {
+		cloudflare, err := platfrom.CheckCloudflare(httpClient)
+		if err != nil || !cloudflare {
+			if config.GlobalConfig.DebugMode {
+				log.Infoln("%s 检查代理结果:无法访问Cloudflare", proxy["name"])
+			}
+			return nil
+		}
 
-	cloudflare, err := platfrom.CheckCloudflare(httpClient)
-	if err != nil || !cloudflare {
-		if config.GlobalConfig.DebugMode {
-			log.Infoln("%s 检查代理结果:无法访问Cloudflare", proxy["name"])
+		google, err := platfrom.CheckGoogle(httpClient)
+		if err != nil || !google {
+			if config.GlobalConfig.DebugMode {
+				log.Infoln("%s 检查代理结果:无法访问Google", proxy["name"])
+			}
+			return nil
 		}
-		return nil
 	}
-
-	google, err := platfrom.CheckGoogle(httpClient)
-	if err != nil || !google {
-		if config.GlobalConfig.DebugMode {
-			log.Infoln("%s 检查代理结果:无法访问Google", proxy["name"])
-		}
-		return nil
-	}
-	for _, url := range config.GlobalConfig.ExtraCheckUrls {
-		if url == "" {
-			continue
-		}
+	checkOk := false
+	for _, url := range config.GlobalConfig.CheckUrls {
 		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
 			if config.GlobalConfig.DebugMode {
 				log.Infoln("%s 检查代理结果:无法访问自定义url (%s)", proxy["name"], url)
 			}
-			return nil
+			if config.GlobalConfig.CheckMode == "all" {
+				return nil
+			}
+		} else {
+			if config.GlobalConfig.CheckMode == "any" {
+				checkOk = true
+				break
+			}
 		}
+	}
+	if config.GlobalConfig.CheckMode == "any" && !checkOk {
+		return nil
 	}
 
 	// 执行其他平台检测
@@ -172,13 +179,11 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	pc.updateProxyName(proxy, httpClient)
 	pc.incrementAvailable()
 	result := Result{
-		Proxy:      proxy,
-		Cloudflare: cloudflare,
-		Google:     google,
-		Openai:     openai,
-		Youtube:    youtube,
-		Netflix:    netflix,
-		Disney:     disney,
+		Proxy:   proxy,
+		Openai:  openai,
+		Youtube: youtube,
+		Netflix: netflix,
+		Disney:  disney,
 	}
 	if config.GlobalConfig.DebugMode {
 		log.Infoln("%s 检查代理结果: %+v", proxy["name"], result)

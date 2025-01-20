@@ -26,7 +26,8 @@ type Config struct {
 	WorkerToken     string   `yaml:"worker-token"`
 	SubUrlsReTry    int      `yaml:"sub-urls-retry"`
 	SubUrls         []string `yaml:"sub-urls"`
-	ExtraCheckUrls  []string `yaml:"extra-check-urls"`
+	CheckUrls       []string `yaml:"check-urls"`
+	CheckMode       string   `yaml:"check-mode"` //all any
 	IPInfo          IPInfo   `yaml:"ip-info"`
 	MihomoApiUrl    string   `yaml:"mihomo-api-url"`
 	MihomoApiSecret string   `yaml:"mihomo-api-secret"`
