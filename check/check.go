@@ -136,7 +136,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 		cloudflare, err := platfrom.CheckCloudflare(httpClient)
 		if err != nil || !cloudflare {
 			if config.GlobalConfig.DebugMode {
-				log.Infoln("%s 检查代理结果:无法访问Cloudflare", proxy["name"])
+				log.Infoln("%s 检查代理结果:无法访问Cloudflare,%v", proxy["name"], err)
 			}
 			return nil
 		}
@@ -144,7 +144,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 		google, err := platfrom.CheckGoogle(httpClient)
 		if err != nil || !google {
 			if config.GlobalConfig.DebugMode {
-				log.Infoln("%s 检查代理结果:无法访问Google", proxy["name"])
+				log.Infoln("%s 检查代理结果:无法访问Google,%v", proxy["name"], err)
 			}
 			return nil
 		}
@@ -153,7 +153,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	for _, url := range config.GlobalConfig.CheckUrls {
 		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
 			if config.GlobalConfig.DebugMode {
-				log.Infoln("%s 检查代理结果:无法访问自定义url (%s)", proxy["name"], url)
+				log.Infoln("%s 检查代理结果:无法访问自定义url (%s),%v", proxy["name"], url, err)
 			}
 			if config.GlobalConfig.CheckMode == "all" {
 				return nil
@@ -275,16 +275,17 @@ func GetProxyFromSubs() ([]map[string]any, error) {
 		if err != nil || resp.StatusCode != 200 {
 			retries++
 			time.Sleep(time.Second * time.Duration(retries+1))
+			e1 := err
 			if retries < config.GlobalConfig.SubUrlsReTry {
 				i--
 				code := 0
 				if resp != nil {
 					code = resp.StatusCode
 				}
-				log.Errorln("获取订阅链接失败(%d): %v,httpCode: %v,重试: %d", i+1, err, code, retries)
+				log.Errorln("获取订阅链接失败(%d): %v,httpCode: %v,重试: %d", i+1, e1, code, retries)
 			} else {
 				retries = 0
-				log.Errorln("获取订阅链接失败(%d): %v", i, err)
+				log.Errorln("获取订阅链接失败(%d): %v", i, e1)
 			}
 			continue
 		}
