@@ -26,36 +26,48 @@ type ConfigSaver struct {
 
 // NewConfigSaver 创建新的配置保存器
 func NewConfigSaver(results []check.Result) *ConfigSaver {
+	conf := []ProxyCategory{
+		{
+			Name:    "noCheck.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return true },
+		},
+		{
+			Name:    "all.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Any },
+		},
+		{
+			Name:    "openai.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Openai },
+		},
+		{
+			Name:    "youtube.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Youtube },
+		},
+		{
+			Name:    "netflix.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Netflix },
+		},
+		{
+			Name:    "disney.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Disney },
+		},
+	}
+	if len(config.GlobalConfig.CheckUrls) > 0 {
+		conf = append(conf, ProxyCategory{Name: "customize.yaml",
+			Proxies: make([]map[string]any, 0),
+			Filter:  func(result check.Result) bool { return result.Customize },
+		})
+	}
 	return &ConfigSaver{
 		results:    results,
 		saveMethod: chooseSaveMethod(),
-		categories: []ProxyCategory{
-			{
-				Name:    "all.yaml",
-				Proxies: make([]map[string]any, 0),
-				Filter:  func(result check.Result) bool { return true },
-			},
-			{
-				Name:    "openai.yaml",
-				Proxies: make([]map[string]any, 0),
-				Filter:  func(result check.Result) bool { return result.Openai },
-			},
-			{
-				Name:    "youtube.yaml",
-				Proxies: make([]map[string]any, 0),
-				Filter:  func(result check.Result) bool { return result.Youtube },
-			},
-			{
-				Name:    "netflix.yaml",
-				Proxies: make([]map[string]any, 0),
-				Filter:  func(result check.Result) bool { return result.Netflix },
-			},
-			{
-				Name:    "disney.yaml",
-				Proxies: make([]map[string]any, 0),
-				Filter:  func(result check.Result) bool { return result.Disney },
-			},
-		},
+		categories: conf,
 	}
 }
 

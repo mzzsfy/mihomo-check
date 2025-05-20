@@ -25,11 +25,13 @@ import (
 
 // Result 存储节点检测结果
 type Result struct {
-	Proxy   map[string]any
-	Openai  bool
-	Youtube bool
-	Netflix bool
-	Disney  bool
+	Proxy     map[string]any
+	Any       bool
+	Customize bool
+	Openai    bool
+	Youtube   bool
+	Netflix   bool
+	Disney    bool
 }
 
 // ProxyChecker 处理代理检测的主要结构体
@@ -129,6 +131,9 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 		}
 		return nil
 	}
+	result := &Result{
+		Proxy: proxy,
+	}
 	if config.GlobalConfig.Warmup {
 		platfrom.CheckCloudflare(httpClient)
 	}
@@ -138,7 +143,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			if config.GlobalConfig.DebugMode {
 				log.Infoln("%s 检查代理结果:无法访问Cloudflare,%v", proxy["name"], err)
 			}
-			return nil
+			return result
 		}
 
 		google, err := platfrom.CheckGoogle(httpClient)
@@ -146,9 +151,10 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			if config.GlobalConfig.DebugMode {
 				log.Infoln("%s 检查代理结果:无法访问Google,%v", proxy["name"], err)
 			}
-			return nil
+			return result
 		}
 	}
+	result.Any = true
 	checkOk := false
 	for _, url := range config.GlobalConfig.CheckUrls {
 		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
@@ -156,7 +162,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 				log.Infoln("%s 检查代理结果:无法访问自定义url (%s),%v", proxy["name"], url, err)
 			}
 			if config.GlobalConfig.CheckMode == "all" {
-				return nil
+				return result
 			}
 		} else {
 			if config.GlobalConfig.CheckMode == "any" {
@@ -165,30 +171,25 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			}
 		}
 	}
+	result.Customize = true
 	if config.GlobalConfig.CheckMode == "any" && !checkOk {
-		return nil
+		return result
 	}
 
 	// 执行其他平台检测
-	openai, _ := platfrom.CheckOpenai(httpClient)
-	youtube, _ := platfrom.CheckYoutube(httpClient)
-	netflix, _ := platfrom.CheckNetflix(httpClient)
-	disney, _ := platfrom.CheckDisney(httpClient)
+	result.Openai, _ = platfrom.CheckOpenai(httpClient)
+	result.Youtube, _ = platfrom.CheckYoutube(httpClient)
+	result.Netflix, _ = platfrom.CheckNetflix(httpClient)
+	result.Disney, _ = platfrom.CheckDisney(httpClient)
 
 	// 更新代理名称
 	pc.updateProxyName(proxy, httpClient)
 	pc.incrementAvailable()
-	result := Result{
-		Proxy:   proxy,
-		Openai:  openai,
-		Youtube: youtube,
-		Netflix: netflix,
-		Disney:  disney,
-	}
+
 	if config.GlobalConfig.DebugMode {
 		log.Infoln("%s 检查代理结果: %+v", proxy["name"], result)
 	}
-	return &result
+	return result
 }
 
 // updateProxyName 更新代理名称
