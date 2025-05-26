@@ -134,8 +134,12 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 	result := &Result{
 		Proxy: proxy,
 	}
+	defer func() {
+		result.Any = result.Disney || result.Customize || result.Netflix || result.Youtube || result.Openai
+	}()
 	if config.GlobalConfig.Warmup {
 		platfrom.CheckCloudflare(httpClient)
+		platfrom.CheckGoogle(httpClient)
 	}
 	if len(config.GlobalConfig.CheckUrls) == 0 {
 		cloudflare, err := platfrom.CheckCloudflare(httpClient)
@@ -154,7 +158,6 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			return result
 		}
 	}
-	result.Any = true
 	checkOk := false
 	for _, url := range config.GlobalConfig.CheckUrls {
 		if ok, err := platfrom.CheckCustomize(url, httpClient); err != nil || !ok {
