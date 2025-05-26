@@ -174,7 +174,7 @@ func (pc *ProxyChecker) checkProxy(proxy map[string]any) *Result {
 			}
 		}
 	}
-	result.Customize = true
+	result.Customize = checkOk
 	if config.GlobalConfig.CheckMode == "any" && !checkOk {
 		return result
 	}
